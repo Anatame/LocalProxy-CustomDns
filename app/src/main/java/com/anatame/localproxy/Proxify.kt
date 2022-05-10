@@ -1,10 +1,5 @@
 package com.anatame.localproxy
 
-import android.annotation.SuppressLint
-import android.content.Context
-import android.content.Intent
-import android.net.Proxy
-import android.util.ArrayMap
 import android.util.Log
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
@@ -13,13 +8,7 @@ import android.webkit.WebViewClient
 import androidx.webkit.ProxyConfig
 import androidx.webkit.ProxyController
 import androidx.webkit.WebViewFeature
-import java.io.PrintWriter
-import java.io.StringWriter
-import java.lang.Exception
-import java.lang.reflect.Field
-import java.lang.reflect.Method
 import java.util.concurrent.Executor
-
 
 class Proxify(
     private val webview: WebView,

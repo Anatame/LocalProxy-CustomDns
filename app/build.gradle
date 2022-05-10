@@ -13,7 +13,9 @@ android {
         versionCode 1
         versionName "1.0"
 
+        multiDexEnabled true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
     }
 
     buildTypes {
@@ -21,10 +23,18 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+
+        debug {
+            applicationIdSuffix ".dev"
+        }
     }
+
+
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+        coreLibraryDesugaringEnabled true
     }
     kotlinOptions {
         jvmTarget = '1.8'
@@ -37,9 +47,21 @@ android {
 
 configurations {
     all*.exclude group: 'com.barchart.udt', module: 'barchart-udt-bundle'
+    cleanedAnnotations
+    implementation.exclude group: 'org.jetbrains' , module:'annotations'
 }
 
+
 dependencies {
+
+    implementation fileTree('libs/core-2.2.1-all.jar')
+
+    implementation 'com.google.guava:guava:31.0.1-android'
+    implementation('org.slf4j:slf4j-android:1.7.35') {
+        exclude group: 'org.slf4j', module: 'slf4j-api'
+    }
+    implementation 'androidx.multidex:multidex:2.0.1'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
 
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation 'androidx.appcompat:appcompat:1.4.1'
@@ -49,11 +71,12 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
-    implementation 'org.littleshoot:littleproxy:1.1.2'
-    implementation 'com.github.ganskef:littleproxy-mitm:1.1.0'
     implementation 'androidx.webkit:webkit:1.4.0'
 
-    implementation 'com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava'
+    // https://stackoverflow.com/questions/65420610/how-to-implement-a-custom-dns-for-okhttp3
+    implementation 'com.squareup.okhttp3:okhttp-dnsoverhttps:4.9.0'
+
+    implementation ('org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9')
 
 
 
