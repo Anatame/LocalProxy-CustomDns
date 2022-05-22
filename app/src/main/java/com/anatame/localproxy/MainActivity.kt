@@ -86,7 +86,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun lookupDnsWithOkHttp(host: String, port: Int): InetSocketAddress{
-        val appCache = Cache(File("cacheDir", "okhttpcache"), 10 * 1024 * 1024)
+        val appCache = Cache(File("cacheDir", "okhttpcache"), 10 * 1024 * 1024L)
 
         val bootstrapClient = OkHttpClient.Builder().cache(appCache).build()
 

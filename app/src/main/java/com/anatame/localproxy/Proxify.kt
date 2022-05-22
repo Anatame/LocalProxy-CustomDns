@@ -19,6 +19,8 @@ class Proxify(
 
     init {
         webview.settings.javaScriptEnabled = true
+        webview.getSettings().setDomStorageEnabled(true);
+        webview.getSettings().setDatabaseEnabled(true);
         webview.webViewClient = object: WebViewClient(){
             override fun shouldInterceptRequest(
                 view: WebView?,
