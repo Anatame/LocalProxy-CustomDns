@@ -1,7 +1,7 @@
 package com.anatame.localproxy
 
 import android.util.Log
-import com.anatame.localproxy.iiberty_tunnel.SNITrick
+
 import io.github.krlvm.powertunnel.sdk.http.ProxyRequest
 import io.github.krlvm.powertunnel.sdk.http.ProxyResponse
 import io.github.krlvm.powertunnel.sdk.proxy.DNSRequest

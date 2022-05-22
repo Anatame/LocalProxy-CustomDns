@@ -11,23 +11,28 @@ import android.os.Looper
 import android.preference.PreferenceManager
 import android.text.TextUtils
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.os.HandlerCompat.postDelayed
-import androidx.webkit.ProxyConfig
-import androidx.webkit.ProxyController
-import androidx.webkit.WebViewFeature
 import com.anatame.localproxy.databinding.ActivityMainBinding
-import com.anatame.localproxy.iiberty_tunnel.LibertyTunnel
+import com.anatame.localproxy.dns.DNSListener
 import io.github.krlvm.powertunnel.BuildConstants
 import io.github.krlvm.powertunnel.PowerTunnel
 import io.github.krlvm.powertunnel.mitm.MITMAuthority
-import io.github.krlvm.powertunnel.plugin.PluginLoader
 import io.github.krlvm.powertunnel.sdk.plugin.PluginInfo
+import io.github.krlvm.powertunnel.sdk.proxy.DNSResolver
 import io.github.krlvm.powertunnel.sdk.proxy.ProxyAddress
 import io.github.krlvm.powertunnel.sdk.types.PowerTunnelPlatform
+import okhttp3.*
+import okhttp3.Cache
+import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.dnsoverhttps.DnsOverHttps
+import org.xbill.DNS.*
 import java.io.File
+import java.io.IOException
+import java.net.InetAddress
+import java.net.InetSocketAddress
+import java.net.UnknownHostException
 import java.util.*
-import java.util.concurrent.Executor
 
 
 class MainActivity : AppCompatActivity() {
@@ -58,7 +63,15 @@ class MainActivity : AppCompatActivity() {
         server.start()
         Log.d("serverStatus", server.isRunning.toString())
 
-        server.registerProxyListener(PLUGIN_INFO, MProxyListener())
+        val resolver = SimpleResolver("1.1.1.1")
+
+        server.registerProxyListener(PLUGIN_INFO, DNSListener(object: DNSResolver{
+            override fun resolve(host: String, port: Int): InetSocketAddress {
+                // lookupDnsWithDnsJava(host, resolver, port)
+                return lookupDnsWithOkHttp(host, port)
+            }
+        }))
+
 
         Handler(Looper.getMainLooper()).postDelayed({
             Proxify(
@@ -66,10 +79,92 @@ class MainActivity : AppCompatActivity() {
                 "127.0.0.1",
                 8085,
             )
+            binding.webView.loadUrl("https://fmovies.to")
+        }, 5000)
 
-            binding.webView.loadUrl("https://google.com")
-        }, 10000)
 
+    }
+
+    private fun lookupDnsWithOkHttp(host: String, port: Int): InetSocketAddress{
+        val appCache = Cache(File("cacheDir", "okhttpcache"), 10 * 1024 * 1024)
+
+        val bootstrapClient = OkHttpClient.Builder().cache(appCache).build()
+
+        val dns = DnsOverHttps.Builder().client(bootstrapClient)
+            .url("https://cloudflare-dns.com/dns-query".toHttpUrl())
+            .build()
+
+        val client = bootstrapClient.newBuilder().dns(dns).build()
+
+        try {
+            val records = client.dns.lookup(host)
+            Log.d("logOkHttpResponse", records[0].toString())
+            return InetSocketAddress(records[0].hostAddress, port)
+        } catch(e: Exception) {
+            e.printStackTrace()
+            throw UnknownHostException()
+        }
+
+
+//        Log.d("logOkHttpResponse", client.dns.lookup(host).toString())
+//
+//        val request = Request.Builder()
+//            .url("https://$host")
+//            .build()
+//
+//
+//        client.newCall(request).enqueue(object : Callback {
+//            override fun onFailure(call: Call, e: IOException) {
+//                Log.d("logOkHttpResponse", "failure")
+//                e.printStackTrace()
+//            }
+//
+//            override fun onResponse(call: Call, response: Response) {
+//                Log.d("logOkHttpResponse", response.code.toString())
+//                Log.d("logOkHttpResponse",  response.body?.string().toString())
+//            }
+//        })
+    }
+
+    private fun lookupDnsWithDnsJava(
+        host: String,
+        resolver: SimpleResolver,
+        port: Int
+    ): InetSocketAddress {
+        val lookup: Lookup
+
+        Log.d("lookupFrom", host)
+
+        try {
+            lookup = Lookup(host, Type.ANY)
+        } catch (ex: TextParseException) {
+            throw UnknownHostException()
+        }
+
+        lookup.setResolver(resolver)
+        val records = lookup.run()
+        if (lookup.result == Lookup.SUCCESSFUL) {
+
+            Log.d(
+                "lookupFrom", """
+                            FUCK YEAH!
+                            
+                            ADDRESS: ${(records[0] as ARecord).address}
+                            PORT: $port
+                            
+                            ${(records[0] as ARecord).name}
+                            ${(records[0] as ARecord).additionalName}
+                          
+                        """.trimIndent()
+            )
+
+            return InetSocketAddress(
+                (records[0] as ARecord).address,
+                port
+            )
+        } else {
+            throw UnknownHostException()
+        }
     }
 
 
