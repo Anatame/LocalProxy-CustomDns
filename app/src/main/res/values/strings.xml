@@ -1,3 +1,18 @@
 <resources>
     <string name="app_name">LocalProxy</string>
+
+    <!-- Certificate -->
+    <string name="toast_cert_install">Please, install Root CA to use enabled features</string>
+    <string name="toast_cert_install_a11">Please, install saved Root CA to use enabled features</string>
+    <string name="toast_cert_install_error">Failed to install Root CA, some features may be unavailable</string>
+    <string name="toast_cert_installed">Certificate installed successfully</string>
+    <string name="toast_cert_extract_os_unsupported">Certificate extraction is not supported on your Android version</string>
+    <string name="toast_cert_extracted">Certificate saved successfully</string>
+    <string name="toast_cert_extraction_failed">Failed to save certificate</string>
+
+    <string name="dialog_cert_extract_title">Certificate installer</string>
+    <string name="dialog_cert_extract_message">Do you want to save certificate for installing it manually?</string>
+    <string name="cancel">Cancel</string>
+    <string name="yes">Yes</string>
+
 </resources>
