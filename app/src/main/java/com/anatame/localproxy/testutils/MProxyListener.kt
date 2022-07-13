@@ -1,20 +1,14 @@
-package com.anatame.localproxy
+package com.anatame.localproxy.testutils
 
 import android.util.Log
 import android.util.Patterns
-import com.anatame.localproxy.helpers.HeadersHelper
-import com.anatame.localproxy.helpers.ProxyResponseHelper
-import io.github.krlvm.powertunnel.sdk.http.HttpHeaders
+import com.anatame.localproxy.AppNetworkClient
 
 import io.github.krlvm.powertunnel.sdk.http.ProxyRequest
 import io.github.krlvm.powertunnel.sdk.http.ProxyResponse
 import io.github.krlvm.powertunnel.sdk.proxy.DNSRequest
 import io.github.krlvm.powertunnel.sdk.proxy.ProxyListener
 import io.github.krlvm.powertunnel.sdk.types.FullAddress
-import okhttp3.*
-import okhttp3.Headers.Companion.toHeaders
-import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.dnsoverhttps.DnsOverHttps
 import java.net.InetAddress
 import java.net.InetSocketAddress
 
@@ -27,50 +21,6 @@ class MProxyListener: ProxyListener {
         proxyRequest.headers().names().toMutableSet().toList().forEach {
             Log.d("clientToProxy", it.toString() + ": " + proxyRequest.headers().get(it))
         }
-
-
-        //onResolutionRequest(DNSRequest(proxyRequest.host, 443))
-
-        val headers = HashMap<String,String>()
-
-        proxyRequest.headers().names().toMutableSet().toList().forEach {
-            headers.put(it.toString(), proxyRequest.headers().get(it).toString())
-        }
-
-        val request = Request.Builder()
-            .headers(headers.toHeaders())
-            .url("https://" + proxyRequest.uri)
-            .build()
-
-        var fullAddress: FullAddress? = null
-        var response: Response? = null
-
-        val bootstrapClient = OkHttpClient.Builder().build()
-
-        val dns = DnsOverHttps.Builder().client(bootstrapClient).url("https://cloudflare-dns.com/AppNetworkClientdns-query".toHttpUrl()).build()
-
-        val client = bootstrapClient.newBuilder().dns(dns).eventListener(object : EventListener() {
-            override fun dnsEnd(
-                call: Call,
-                domainName: String,
-                inetAddressList: List<InetAddress>
-            ) {
-                Log.d("dnsEnd", inetAddressList[0].hostAddress.toString())
-                super.dnsEnd(call, domainName, inetAddressList)
-            }
-
-            override fun connectionAcquired(call: Call, connection: Connection) {
-                val addr = connection.route().socketAddress.address
-                Log.d("connectionAcquired", fullAddress?.host.toString())
-                fullAddress = FullAddress(addr?.hostAddress.toString(), 443)
-                super.connectionAcquired(call, connection)
-            }
-        }).build()
-
-        response = client.newCall(request).execute()
-
-        val proxyResponse = ProxyResponseHelper(fullAddress, response)
-        proxyRequest.setResponse(proxyResponse)
     }
 
     override fun onProxyToServerRequest(proxyRequest: ProxyRequest) {
@@ -115,7 +65,7 @@ class MProxyListener: ProxyListener {
 
     override fun onGetChunkSize(p0: FullAddress): Int {
         Log.d("cycle", "onGetChunkSize")
-        return 517
+        return 2
     }
 
     override fun isFullChunking(p0: FullAddress): Boolean {

@@ -15,7 +15,7 @@
  * along with LibertyTunnel.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.anatame.localproxy.libertytunnel;
+package com.anatame.localproxy.plugins.anti_censorship;
 
 public enum SNITrick {
     SPOIL,

@@ -15,7 +15,9 @@
  * along with LibertyTunnel.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.anatame.localproxy.libertytunnel;
+package com.anatame.localproxy.plugins.anti_censorship;
+
+import android.util.Log;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -26,7 +28,7 @@ import io.github.krlvm.powertunnel.sdk.http.ProxyRequest;
 import io.github.krlvm.powertunnel.sdk.proxy.ProxyAdapter;
 import io.github.krlvm.powertunnel.sdk.types.FullAddress;
 
-public final class ProxyListener extends ProxyAdapter {
+public final class AntiCensorshipProxyListener extends ProxyAdapter {
 
     private static final String HOST = "Host";
 
@@ -57,7 +59,7 @@ public final class ProxyListener extends ProxyAdapter {
 
     protected final MITMListener mitmListener = new MITMListener();
 
-    public ProxyListener(
+    public AntiCensorshipProxyListener(
             final String[] blacklist,
             final boolean mixHostCase,
             final boolean completeMixHostCase,
@@ -106,6 +108,8 @@ public final class ProxyListener extends ProxyAdapter {
 
     @Override
     public void onProxyToServerRequest(@NotNull ProxyRequest request) {
+        Log.d("PluginTester", "Anti Censorship Plugin");
+
         if(request.isBlocked()) return;
         String host = request.headers().get(HOST);
         if(!isBlocked(request.address() == null ?
