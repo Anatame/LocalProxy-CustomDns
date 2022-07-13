@@ -27,21 +27,10 @@ class MainActivity : AppCompatActivity() {
 
         Proxify(binding.webView, "127.0.0.1", 9999)
 
-//        binding.webView.settings.domStorageEnabled = true;
-//        binding.webView.settings.javaScriptEnabled = true
-
         var startTime: Long = 0
         var endTime: Long = 0
 
         binding.webView.webViewClient = object: WebViewClient() {
-//            override fun onReceivedSslError(
-//                view: WebView?,
-//                handler: SslErrorHandler,
-//                error: SslError
-//            ) {
-//                Log.d("dambBruh", "not callled")
-//                handler.proceed() // Ignore SSL certificate errors
-//            }
 
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
                 super.onPageStarted(view, url, favicon)
@@ -56,7 +45,7 @@ class MainActivity : AppCompatActivity() {
                 Log.d("totalTimeTaken: ", totalTime.toString())
             }
         }
-        binding.webView.loadUrl("https://9anime.to")
+        binding.webView.loadUrl("https://google.com")
     }
 
 }
