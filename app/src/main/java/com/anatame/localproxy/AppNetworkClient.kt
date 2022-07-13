@@ -41,7 +41,7 @@ object AppNetworkClient {
             .build()
 
         val dns = DnsOverHttps.Builder().client(bootstrapClient)
-            .url("https://cloudflare-dns.com/AppNetworkClientdns-query".toHttpUrl())
+            .url("https://1.1.1.1/dns-query".toHttpUrl())
             .build()
 
         return bootstrapClient.newBuilder()

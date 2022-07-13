@@ -15,6 +15,7 @@ class ProxyResponseHelper(
     private var responseCode: Int = response?.code ?: 200
 
     override fun address(): FullAddress? {
+        Log.d("responseAddress", fullAddress?.host.toString())
         return fullAddress
     }
 

@@ -54,7 +54,7 @@ class MainActivity : AppCompatActivity() {
                 Log.d("totalTimeTaken: ", totalTime.toString())
             }
         }
-        binding.webView.loadUrl("https://fmovies.to")
+        binding.webView.loadUrl("https://xvideos.com")
     }
 
 }

@@ -1,6 +1,7 @@
 package com.anatame.localproxy
 
 import android.util.Log
+import android.util.Patterns
 import com.anatame.localproxy.helpers.HeadersHelper
 import com.anatame.localproxy.helpers.ProxyResponseHelper
 import io.github.krlvm.powertunnel.sdk.http.HttpHeaders
@@ -14,6 +15,8 @@ import okhttp3.*
 import okhttp3.Headers.Companion.toHeaders
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.dnsoverhttps.DnsOverHttps
+import java.net.InetAddress
+import java.net.InetSocketAddress
 
 class MProxyListener: ProxyListener {
     override fun onClientToProxyRequest(proxyRequest: ProxyRequest) {
@@ -25,13 +28,8 @@ class MProxyListener: ProxyListener {
             Log.d("clientToProxy", it.toString() + ": " + proxyRequest.headers().get(it))
         }
 
-        onProxyToServerRequest(proxyRequest)
-    }
 
-    override fun onProxyToServerRequest(proxyRequest: ProxyRequest) {
-        Log.d("cycle", "onProxyToServerRequest")
-
-        onResolutionRequest(DNSRequest(proxyRequest.host, 443))
+        //onResolutionRequest(DNSRequest(proxyRequest.host, 443))
 
         val headers = HashMap<String,String>()
 
@@ -41,7 +39,7 @@ class MProxyListener: ProxyListener {
 
         val request = Request.Builder()
             .headers(headers.toHeaders())
-            .url("wss://" + proxyRequest.uri)
+            .url("https://" + proxyRequest.uri)
             .build()
 
         var fullAddress: FullAddress? = null
@@ -52,8 +50,18 @@ class MProxyListener: ProxyListener {
         val dns = DnsOverHttps.Builder().client(bootstrapClient).url("https://cloudflare-dns.com/AppNetworkClientdns-query".toHttpUrl()).build()
 
         val client = bootstrapClient.newBuilder().dns(dns).eventListener(object : EventListener() {
+            override fun dnsEnd(
+                call: Call,
+                domainName: String,
+                inetAddressList: List<InetAddress>
+            ) {
+                Log.d("dnsEnd", inetAddressList[0].hostAddress.toString())
+                super.dnsEnd(call, domainName, inetAddressList)
+            }
+
             override fun connectionAcquired(call: Call, connection: Connection) {
                 val addr = connection.route().socketAddress.address
+                Log.d("connectionAcquired", fullAddress?.host.toString())
                 fullAddress = FullAddress(addr?.hostAddress.toString(), 443)
                 super.connectionAcquired(call, connection)
             }
@@ -62,21 +70,41 @@ class MProxyListener: ProxyListener {
         response = client.newCall(request).execute()
 
         val proxyResponse = ProxyResponseHelper(fullAddress, response)
-        this.onServerToProxyResponse(proxyResponse)
+        proxyRequest.setResponse(proxyResponse)
+    }
+
+    override fun onProxyToServerRequest(proxyRequest: ProxyRequest) {
+        Log.d("cycle", "onProxyToServerRequest")
     }
 
     override fun onServerToProxyResponse(proxyResponse: ProxyResponse) {
         Log.d("cycle", "onServerToProxyResponse")
-        onProxyToClientResponse(proxyResponse)
+//        onProxyToClientResponse(proxyResponse)
     }
 
     override fun onProxyToClientResponse(p0: ProxyResponse) {
         Log.d("cycle", "onProxyToClientResponse")
     }
 
-    override fun onResolutionRequest(p0: DNSRequest): Boolean {
-        Log.d("resolutionRequest", p0.host)
+    override fun onResolutionRequest(dnsRequest: DNSRequest): Boolean {
+        Log.d("resolutionRequest", dnsRequest.host)
         Log.d("cycle", "resolutionRequest")
+
+        val records = AppNetworkClient.getClient().dns.lookup(dnsRequest.host)
+        var addr: InetAddress? = null
+        records.forEach{
+            Log.d("dnsResponse", it.hostAddress?.toString().toString())
+            if(Patterns.IP_ADDRESS.matcher(it.hostAddress?.toString().toString()).matches()){
+                if(addr == null){
+                    addr = it
+                }
+            }
+        }
+
+        Log.d("currentAddr", addr?.hostAddress.toString())
+
+        addr?.let { dnsRequest.response = InetSocketAddress(it, 443) }
+
         return true
     }
 
@@ -95,9 +123,8 @@ class MProxyListener: ProxyListener {
         return false
     }
 
-
     override fun onGetSNI(p0: String): String? {
         Log.d("cycle", "onGetSNI")
-        return p0
+        return null
     }
 }
